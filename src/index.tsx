@@ -6,13 +6,13 @@ import { Guild, User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
 
-export function insertMenuItem(menuItems: typeof MenuGroup, e: { guildId: number; user: User }) {
+export function insertMenuItem(menuItems: typeof MenuGroup, e: { guildId: string; user: User }) {
   const PetpetItem = (
     <MenuGroup>
       <MenuItem
         id="petpet"
         label="Generate Petpet"
-        action={() => makePetpet(e.user.getAvatarURL(e.guildId.toString()))}
+        action={() => makePetpet(e.user.getAvatarURL(e.guildId))}
       />
     </MenuGroup>
   );
