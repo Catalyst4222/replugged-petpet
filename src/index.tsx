@@ -1,9 +1,8 @@
-import { Injector, components, webpack, common, ModuleExports } from "replugged";
+import { components, common } from "replugged";
 const { MenuItem, MenuGroup } = components.ContextMenu;
 const { React } = common
 
 import type { User } from "discord-types/general";
-import type { } from "discord-types/stores";
 
 import { prompToUpload } from "./utils";
 
@@ -33,21 +32,9 @@ export function insertMenuItem(menuItems: typeof MenuGroup, e: {guildId: number,
 
 export async function makePetpet(id: string, avatarHash: string) {
   const url = `https://cdn.discordapp.com/avatars/${id}/${avatarHash}.png`
-
-  //disabled while debugging
   const avatar = await loadImage(url)
   const res = await petpet(avatar, {})
   const file = new File([res], "petpet.gif", {type: "image/gif"})
-
-  //enabled while debugging
-  // const response = await fetch(url)
-  // const blob = await response.blob()
-  // const file = new File([blob], "test.png", {type: "image/png"})
-
-  // frames = await loadFrames()
-  // console.log(frames)
-
-
   prompToUpload(file)
 }
 
@@ -58,14 +45,14 @@ export async function makePetpet(id: string, avatarHash: string) {
 import { GifEncoder } from "../gifencoder";
 
 
-let frames: Array<any> = []
+let frames: Array<HTMLImageElement> = []
 const defaults = {
   resolution: 256,
   delay: 30
 };
 
 // Based on https://github.com/aDu/pet-pet-gif, licensed under ISC
-export async function petpet(avatar, options) {
+export async function petpet(avatar: HTMLImageElement, options) {
   if (frames.length === 0) {
     frames = await loadFrames();
   }
@@ -104,7 +91,7 @@ export async function petpet(avatar, options) {
   return encoder.out.getData();
 }
 
-async function loadFrames(): Promise<Array<any>> {
+async function loadFrames(): Promise<Array<HTMLImageElement>> {
   return await Promise.all(
     Array(10)
     .fill(null)
@@ -115,7 +102,7 @@ async function loadFrames(): Promise<Array<any>> {
   )
 }
 
-function loadImage(src): Promise<HTMLImageElement> {
+function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -125,127 +112,4 @@ function loadImage(src): Promise<HTMLImageElement> {
       img.crossOrigin = "Anonymous";
       img.src = src;
   });
-}
-
-// export async function start(): Promise<void> {
-//   /*
-//   {// const typingMod = await webpack.waitForModule<{
-//   //   startTyping: (channelId: string) => void;
-//   // }>(webpack.filters.byProps("startTyping"));
-//   // const getChannelMod = await webpack.waitForModule<{
-//   //   getChannel: (id: string) => {
-//   //     name: string;
-//   //   };
-//   // }>(webpack.filters.byProps("getChannel"));
-
-//   // if (typingMod && getChannelMod) {
-//   //   inject.instead(typingMod, "startTyping", ([channel]) => {
-//   //     const channelObj = getChannelMod.getChannel(channel);
-//   //     console.log(`Typing prevented! Channel: #${channelObj?.name ?? "unknown"} (${channel}).`);
-//   //   });
-//   // }
-//   console.log(components)
-//   console.log(components.ContextMenu)
-//   console.log(replugged)
-
-//   console.log('b')
-//   await webpack.waitForReady
-//   await webpack.waitForStart
-//   const menuMod = await webpack.waitForModule(webpack.filters.bySource("♫ ⊂(｡◕‿‿◕｡⊂) ♪"));
-//   console.log(menuMod)
-//   console.log('c')
-//   // webpack.common
-
-//   inject.after(replugged.common.contextMenu, "open", (args, res, self) => {
-//     console.log(args)
-//     console.log(res)
-//     console.log(self)
-//   })
-
-
-
-
-
-//   // console.log(replugged.common.contextMenu.open())
-
-  
-
-
-
-
-
-  
-//   // const mod = await webpack.waitForModule(webpack.filters.bySource('type:"CONTEXT_MENU_OPEN"'));
-
-//   // console.log(mod)
-//   // // console.log(webpack.getFunctionKeyBySource("stopPropagation", mod))  // <- that is a function that gets called, but not the one we want to override  // or not?
-//   // const old_mod = inject.after(mod, "jW", async (args, res, self) => {
-//   // // const old_mod = inject.after(mod, webpack.getFunctionKeyBySource("stopPropagation", mod), (args, res, self) => {
-//   //   console.log(args)
-//   //   console.log(res)
-//   //   console.log(self)
-//   //   console.log((new Error()).stack) 
-//   //   console.log((await args[1](args[0]))(args[0]))
-//   // })
-//   // console.log(mod.jW)
-
-//   // // inject.after(webpack.getByProps("onContextMenu"), webpack.getFunctionKeyBySource("onContextMenu"), (...all) => {
-//   // //   console.log(all)
-//   // // })
-
-     
-  
-//   // inject.after(webpack.getByProps("handleContextMenu"), "handleContextMenu", (...all) => {
-//   //   console.log(all)
-//   // })
-
-//   webpack.getByProps("getContextMenu")
-
-//   const a = webpack.getByProps("getContextMenu")
-//   const b = webpack.getByProps("register")
-
-//   // replugged.components.ContextMenu.ContextMenu() // needs navId
-
-//   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-//   function wtf(func: () => void) {
-//     console.log("wtf")
-//     console.log(func)
-//     console.log(func()) // this gets the user or channel that the thing selected
-//     webpack.common.ReactDOM.findDOMNode(this).parentNode
-
-
-//   }
-
-
-//   inject.after(webpack.getByProps("getContextMenu"), "getContextMenu", (args, res, self) => {
-//     console.log(args)
-//     console.log(res)
-//     console.log(self)
-//     try {
-//       // components.ContextMenu.ContextMenu(res?.target)
-//       console.log(res?.renderLazy)
-//       res?.renderLazy().then((func) => {
-//         console.log("wtf")
-//         console.log(func)
-//         const ret = func() // this gets the user or channel that the thing selected
-//         console.log(ret)
-//         // console.log(common.ReactDOM.findDOMNode(ret).parentNode)
-//       })
-
-//       console.log(res?.render)
-//     } catch (e) {
-//       console.error(e)
-//     }
-//   })}
-//   */
-
-
-// }
-
-
-
-
-export function stop(): void {
-  // inject.uninjectAll();
-  // wtf goes here?
 }
