@@ -34,6 +34,8 @@ function LZWEncoder(width, height, pixels, colorDepth) {
   var htab = new Int32Array(HSIZE);
   var codetab = new Int32Array(HSIZE);
 
+  var self = this // aaaaaaaaa --cata
+
   var cur_accum, cur_bits = 0;
   var a_count;
   var free_ent = 0; // first unused entry
@@ -85,8 +87,8 @@ function LZWEncoder(width, height, pixels, colorDepth) {
 
     // Set up the necessary values
     clear_flg = false;
-    n_bits = g_init_bits;
-    maxcode = MAXCODE(n_bits);
+    self.n_bits = g_init_bits;
+    maxcode = MAXCODE(self.n_bits);
 
     ClearCode = 1 << (init_bits - 1);
     EOFCode = ClearCode + 1;
@@ -138,8 +140,8 @@ function LZWEncoder(width, height, pixels, colorDepth) {
 
   function encode(outs) {
     outs.writeByte(initCodeSize); // write "initial code size" byte
-    remaining = width * height; // reset navigation variables
-    curPixel = 0;
+    self.remaining = width * height; // reset navigation variables
+    self.curPixel = 0;
     compress(initCodeSize + 1, outs); // compress and write the pixel data
     outs.writeByte(0); // write block terminator
   }
@@ -159,9 +161,9 @@ function LZWEncoder(width, height, pixels, colorDepth) {
 
   // Return the next pixel from the image
   function nextPixel() {
-    if (remaining === 0) return EOF;
-    --remaining;
-    var pix = pixels[curPixel++];
+    if (self.remaining === 0) return EOF;
+    --self.remaining;
+    var pix = pixels[self.curPixel++];
     return pix & 0xff;
   }
 
@@ -171,7 +173,7 @@ function LZWEncoder(width, height, pixels, colorDepth) {
     if (cur_bits > 0) cur_accum |= (code << cur_bits);
     else cur_accum = code;
 
-    cur_bits += n_bits;
+    cur_bits += self.n_bits;
 
     while (cur_bits >= 8) {
       char_out((cur_accum & 0xff), outs);
@@ -183,12 +185,12 @@ function LZWEncoder(width, height, pixels, colorDepth) {
     // then increase it, if possible.
     if (free_ent > maxcode || clear_flg) {
       if (clear_flg) {
-        maxcode = MAXCODE(n_bits = g_init_bits);
+        maxcode = MAXCODE(self.n_bits = g_init_bits);
         clear_flg = false;
       } else {
-        ++n_bits;
-        if (n_bits == BITS) maxcode = 1 << BITS;
-        else maxcode = MAXCODE(n_bits);
+        ++self.n_bits;
+        if (self.n_bits == BITS) maxcode = 1 << BITS;
+        else maxcode = MAXCODE(self.n_bits);
       }
     }
 
@@ -204,6 +206,7 @@ function LZWEncoder(width, height, pixels, colorDepth) {
   }
 
   this.encode = encode;
+  this.compress = compress
 }
 
 module.exports = LZWEncoder;

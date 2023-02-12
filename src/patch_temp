@@ -1,0 +1,40 @@
+// import { PlaintextPatch } from "replugged/dist/types";
+
+
+// export default [
+//   {
+//     find: 'navId:"user-context"',
+//     replacements: [
+//       {
+//         match: /(function\((.)\){var.+channel[\s\S]+)return([\s\S]+onSelect:.,children:\[.+\w}\)\]}\))}/g,
+//         replace:
+//           "$1return(()=>{console.log($2); return ($3)})()}",
+
+
+//           // "$&,(()=>window.replugged.plugins.getExports('dev.catalyst.Petpet')?.checkMessage?.($1?.message?.content,$1?.target?.href)||null)()",
+//       },
+//     ],
+//     check: (e) => {console.log(e); return true}
+//   },
+// ] as PlaintextPatch[];
+
+
+import { PlaintextPatch } from "replugged/dist/types";
+
+export default [
+  {
+    find: 'navId:"user-context"',
+    replacements: [
+      {
+        match: /(function\((.)\){var.+channel[\s\S]+)return([\s\S]+onSelect:.,children:\[.+\w}\)\]}\))}/g,
+        replace:
+          // "$1return(()=>{var res = ($3); console.log(res); return (res)})()}",
+          "$1return(()=>{var res = ($3); window.replugged.plugins.getExports('dev.catalyst.Petpet')?.insertMenuItem?.(res); return (res)})()}",
+
+
+          // "$&,(()=>window.replugged.plugins.getExports('dev.catalyst.Petpet')?.insertMenuItem?.($1?.message?.content,$1?.target?.href)||null)()",
+      },
+    ],
+    check: (e) => {console.log(e); return true}
+  },
+] as PlaintextPatch[];

@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 /*
   GIFEncoder.js
 
@@ -8,9 +9,13 @@
   Eugene Ware (node.js streaming version - eugene@noblesmaurai.com)
 */
 
-var stream = require("stream");
-var NeuQuant = require("./TypedNeuQuant.js");
-var LZWEncoder = require("./LZWEncoder.js");
+// import { api } from '@mdn/browser-compat-data/forLegacyNode';
+import bcd from '@mdn/browser-compat-data' assert { type: 'json' };
+const { Readable, Duplex } = bcd.api
+const NeuQuant = require("./TypedNeuQuant.js");
+const LZWEncoder = require("./LZWEncoder.js");
+
+import { Buffer } from "buffer";
 
 function ByteArray() {
   this.data = [];
@@ -54,7 +59,7 @@ function GIFEncoder(width, height) {
   this.indexedPixels = null; // converted frame indexed to palette
   this.colorDepth = null; // number of bit planes
   this.colorTab = null; // RGB palette
-  this.usedEntry = new Array(); // active palette entries
+  this.usedEntry = []; // active palette entries
   this.palSize = 7; // color table size (bits-1)
   this.dispose = -1; // disposal code (-1 = use default)
   this.firstFrame = true;
@@ -69,7 +74,7 @@ function GIFEncoder(width, height) {
 
 GIFEncoder.prototype.createReadStream = function (rs) {
   if (!rs) {
-    rs = new stream.Readable();
+    rs = new Readable();
     rs._read = function () {};
   }
   this.readStreams.push(rs);
@@ -80,25 +85,26 @@ GIFEncoder.prototype.createWriteStream = function (options) {
   var self = this;
   if (options) {
     Object.keys(options).forEach(function (option) {
-      var fn = "set" + option[0].toUpperCase() + option.substr(1);
-      if (~["setDelay", "setFrameRate", "setDispose", "setRepeat", "setTransparent", "setQuality"].indexOf(fn)) {
-        self[fn].call(self, options[option]);
+      var fn = `set${option[0].toUpperCase()}${option.substring(1)}`;
+      if (["setDelay", "setFrameRate", "setDispose", "setRepeat", "setTransparent", "setQuality"].indexOf(fn) !== -1) {
+        self[fn](self, options[option]);
       }
     });
   }
 
-  var ws = new stream.Duplex({ objectMode: true });
+  var ws = new Duplex({ objectMode: true });
   ws._read = function () {};
   this.createReadStream(ws);
 
   var self = this;
-  ws._write = function (data, enc, next) {
+  ws._write = function (data, _enc, next) {
     if (!self.started) self.start();
     self.addFrame(data);
     next();
   };
-  var end = ws.end;
+  var {end} = ws;
   ws.end = function () {
+    // eslint-disable-next-line prefer-rest-params
     end.apply(ws, [].slice.call(arguments));
     self.finish();
   };
@@ -117,7 +123,7 @@ GIFEncoder.prototype.emit = function () {
 };
 
 GIFEncoder.prototype.end = function () {
-  if (this.readStreams.length === null) return;
+  if (this.readStreams.length == null) return;
   this.emit();
   this.readStreams.forEach(function (rs) {
     rs.push(null);
@@ -266,12 +272,12 @@ GIFEncoder.prototype.analyzePixels = function () {
   this.palSize = 7;
 
   // get closest match to transparent color if specified
-  if (this.transparent !== null) {
+  if (this.transparent != null) {
     this.transIndex = this.findClosest(this.transparent);
 
     // ensure that pixels with full transparency in the RGBA image are using the selected transparent color index in the indexed image.
     for (var pixelIndex = 0; pixelIndex < nPix; pixelIndex++) {
-      if (this.image[pixelIndex * 4 + 3] == 0) {
+      if (this.image[pixelIndex * 4 + 3] === 0) {
         this.indexedPixels[pixelIndex] = this.transIndex;
       }
     }
@@ -282,7 +288,7 @@ GIFEncoder.prototype.analyzePixels = function () {
   Returns index of palette color closest to c
 */
 GIFEncoder.prototype.findClosest = function (c) {
-  if (this.colorTab === null) return -1;
+  if (this.colorTab == null) return -1;
 
   var r = (c & 0xff0000) >> 16;
   var g = (c & 0x00ff00) >> 8;
@@ -337,7 +343,7 @@ GIFEncoder.prototype.writeGraphicCtrlExt = function () {
   this.out.writeByte(4); // data block size
 
   var transp, disp;
-  if (this.transparent === null) {
+  if (this.transparent == null) {
     transp = 0;
     disp = 0; // dispose = no action
   } else {
@@ -445,4 +451,4 @@ GIFEncoder.prototype.writePixels = function () {
   enc.encode(this.out);
 };
 
-module.exports = GIFEncoder;
+module.exports.GifEncoder = GIFEncoder;
