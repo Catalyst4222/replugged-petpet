@@ -2,25 +2,17 @@ import { components, common } from "replugged";
 const { MenuItem, MenuGroup } = components.ContextMenu;
 const { React } = common
 
-import type { User } from "discord-types/general";
+import { Guild, User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
 
 
-export function insertMenuItem(menuItems: typeof MenuGroup, e: {guildId: number, user: User & {guildAvatars: Record<number, string>}}) {
-  const {guildId, user} = e
-  let {avatar} = user
-  const {guildAvatars, id} = user
-
-  if (guildAvatars) {
-    avatar = guildAvatars[guildId]
-  }
-
+export function insertMenuItem(menuItems: typeof MenuGroup, e: {guildId: number, user: User}) {
   const PetpetItem = (<MenuGroup>
     <MenuItem
       id="petpet"
       label="Generate Petpet"
-      action={() => makePetpet(id, avatar)}
+      action={() => makePetpet(e.user.getAvatarURL(e.guildId.toString()))}
     />
   </MenuGroup>)
 
@@ -30,9 +22,8 @@ export function insertMenuItem(menuItems: typeof MenuGroup, e: {guildId: number,
 }
 
 
-export async function makePetpet(id: string, avatarHash: string) {
-  const url = `https://cdn.discordapp.com/avatars/${id}/${avatarHash}.png`
-  const avatar = await loadImage(url)
+export async function makePetpet(avatarUrl: string) {
+  const avatar = await loadImage(avatarUrl)
   const res = await petpet(avatar, {})
   const file = new File([res], "petpet.gif", {type: "image/gif"})
   prompToUpload(file)
