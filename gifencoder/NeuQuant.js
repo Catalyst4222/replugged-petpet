@@ -32,30 +32,30 @@ var maxnetpos = netsize - 1;
 // defs for freq and bias
 var netbiasshift = 4; // bias for colour values
 var intbiasshift = 16; // bias for fractions
-var intbias = (1 << intbiasshift);
+var intbias = 1 << intbiasshift;
 var gammashift = 10;
-var gamma = (1 << gammashift);
+var gamma = 1 << gammashift;
 var betashift = 10;
-var beta = (intbias >> betashift); /* beta = 1/1024 */
-var betagamma = (intbias << (gammashift - betashift));
+var beta = intbias >> betashift; /* beta = 1/1024 */
+var betagamma = intbias << (gammashift - betashift);
 
 // defs for decreasing radius factor
-var initrad = (netsize >> 3); // for 256 cols, radius starts
+var initrad = netsize >> 3; // for 256 cols, radius starts
 var radiusbiasshift = 6; // at 32.0 biased by 6 bits
-var radiusbias = (1 << radiusbiasshift);
-var initradius = (initrad * radiusbias); //and decreases by a
+var radiusbias = 1 << radiusbiasshift;
+var initradius = initrad * radiusbias; //and decreases by a
 var radiusdec = 30; // factor of 1/30 each cycle
 
 // defs for decreasing alpha factor
 var alphabiasshift = 10; // alpha starts at 1.0
-var initalpha = (1 << alphabiasshift);
+var initalpha = 1 << alphabiasshift;
 var alphadec; // biased by 10 bits
 
 /* radbias and alpharadbias used for radpower calculation */
 var radbiasshift = 8;
-var radbias = (1 << radbiasshift);
-var alpharadbshift = (alphabiasshift + radbiasshift);
-var alpharadbias = (1 << alpharadbshift);
+var radbias = 1 << radbiasshift;
+var alpharadbshift = alphabiasshift + radbiasshift;
+var alpharadbias = 1 << alpharadbshift;
 
 // four primes near 500 - assume no image has a length so large that it is
 // divisible by all four primes
@@ -63,7 +63,7 @@ var prime1 = 499;
 var prime2 = 491;
 var prime3 = 487;
 var prime4 = 503;
-var minpicturebytes = (3 * prime4);
+var minpicturebytes = 3 * prime4;
 
 /*
   Constructor: NeuQuant
@@ -146,7 +146,7 @@ function NeuQuant(pixels, samplefac) {
     var m = 1;
 
     var p, a;
-    while ((j < hi) || (k > lo)) {
+    while (j < hi || k > lo) {
       a = radpower[m++];
 
       if (j < hi) {
@@ -193,15 +193,15 @@ function NeuQuant(pixels, samplefac) {
         bestpos = i;
       }
 
-      biasdist = dist - ((bias[i]) >> (intbiasshift - netbiasshift));
+      biasdist = dist - (bias[i] >> (intbiasshift - netbiasshift));
       if (biasdist < bestbiasd) {
         bestbiasd = biasdist;
         bestbiaspos = i;
       }
 
-      betafreq = (freq[i] >> betashift);
+      betafreq = freq[i] >> betashift;
       freq[i] -= betafreq;
-      bias[i] += (betafreq << gammashift);
+      bias[i] += betafreq << gammashift;
     }
 
     freq[bestpos] += beta;
@@ -216,7 +216,14 @@ function NeuQuant(pixels, samplefac) {
     sorts network and builds netindex[0..255]
   */
   function inxbuild() {
-    var i, j, p, q, smallpos, smallval, previouscol = 0, startpos = 0;
+    var i,
+      j,
+      p,
+      q,
+      smallpos,
+      smallval,
+      previouscol = 0,
+      startpos = 0;
     for (i = 0; i < netsize; i++) {
       p = network[i];
       smallpos = i;
@@ -224,7 +231,8 @@ function NeuQuant(pixels, samplefac) {
       // find smallest in i..netsize-1
       for (j = i + 1; j < netsize; j++) {
         q = network[j];
-        if (q[1] < smallval) { // index on g
+        if (q[1] < smallval) {
+          // index on g
           smallpos = j;
           smallval = q[1]; // index on g
         }
@@ -232,24 +240,30 @@ function NeuQuant(pixels, samplefac) {
       q = network[smallpos];
       // swap p (i) and q (smallpos) entries
       if (i != smallpos) {
-        j = q[0];   q[0] = p[0];   p[0] = j;
-        j = q[1];   q[1] = p[1];   p[1] = j;
-        j = q[2];   q[2] = p[2];   p[2] = j;
-        j = q[3];   q[3] = p[3];   p[3] = j;
+        j = q[0];
+        q[0] = p[0];
+        p[0] = j;
+        j = q[1];
+        q[1] = p[1];
+        p[1] = j;
+        j = q[2];
+        q[2] = p[2];
+        p[2] = j;
+        j = q[3];
+        q[3] = p[3];
+        p[3] = j;
       }
       // smallval entry is now in position i
 
       if (smallval != previouscol) {
         netindex[previouscol] = (startpos + i) >> 1;
-        for (j = previouscol + 1; j < smallval; j++)
-          netindex[j] = i;
+        for (j = previouscol + 1; j < smallval; j++) netindex[j] = i;
         previouscol = smallval;
         startpos = i;
       }
     }
     netindex[previouscol] = (startpos + maxnetpos) >> 1;
-    for (j = previouscol + 1; j < 256; j++)
-      netindex[j] = maxnetpos; // really 256
+    for (j = previouscol + 1; j < 256; j++) netindex[j] = maxnetpos; // really 256
   }
 
   /*
@@ -266,7 +280,7 @@ function NeuQuant(pixels, samplefac) {
     var i = netindex[g]; // index on g
     var j = i - 1; // start at netindex[g] and work outwards
 
-    while ((i < netsize) || (j >= 0)) {
+    while (i < netsize || j >= 0) {
       if (i < netsize) {
         p = network[i];
         dist = p[1] - g; // inx key
@@ -274,10 +288,12 @@ function NeuQuant(pixels, samplefac) {
         else {
           i++;
           if (dist < 0) dist = -dist;
-          a = p[0] - b; if (a < 0) a = -a;
+          a = p[0] - b;
+          if (a < 0) a = -a;
           dist += a;
           if (dist < bestd) {
-            a = p[2] - r; if (a < 0) a = -a;
+            a = p[2] - r;
+            if (a < 0) a = -a;
             dist += a;
             if (dist < bestd) {
               bestd = dist;
@@ -293,10 +309,12 @@ function NeuQuant(pixels, samplefac) {
         else {
           j--;
           if (dist < 0) dist = -dist;
-          a = p[0] - b; if (a < 0) a = -a;
+          a = p[0] - b;
+          if (a < 0) a = -a;
           dist += a;
           if (dist < bestd) {
-            a = p[2] - r; if (a < 0) a = -a;
+            a = p[2] - r;
+            if (a < 0) a = -a;
             dist += a;
             if (dist < bestd) {
               bestd = dist;
@@ -319,7 +337,7 @@ function NeuQuant(pixels, samplefac) {
     var i;
 
     var lengthcount = pixels.length;
-    var alphadec = toInt(30 + ((samplefac - 1) / 3));
+    var alphadec = toInt(30 + (samplefac - 1) / 3);
     var samplepixels = toInt(lengthcount / (3 * samplefac));
     var delta = toInt(samplepixels / ncycles);
     var alpha = initalpha;
@@ -335,11 +353,11 @@ function NeuQuant(pixels, samplefac) {
     if (lengthcount < minpicturebytes) {
       samplefac = 1;
       step = 3;
-    } else if ((lengthcount % prime1) !== 0) {
+    } else if (lengthcount % prime1 !== 0) {
       step = 3 * prime1;
-    } else if ((lengthcount % prime2) !== 0) {
+    } else if (lengthcount % prime2 !== 0) {
       step = 3 * prime2;
-    } else if ((lengthcount % prime3) !== 0)  {
+    } else if (lengthcount % prime3 !== 0) {
       step = 3 * prime3;
     } else {
       step = 3 * prime4;
@@ -408,15 +426,14 @@ function NeuQuant(pixels, samplefac) {
     var map = [];
     var index = [];
 
-    for (var i = 0; i < netsize; i++)
-      index[network[i][3]] = i;
+    for (var i = 0; i < netsize; i++) index[network[i][3]] = i;
 
     var k = 0;
     for (var l = 0; l < netsize; l++) {
       var j = index[l];
-      map[k++] = (network[j][0]);
-      map[k++] = (network[j][1]);
-      map[k++] = (network[j][2]);
+      map[k++] = network[j][0];
+      map[k++] = network[j][1];
+      map[k++] = network[j][2];
     }
     return map;
   }

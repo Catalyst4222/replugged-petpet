@@ -10,8 +10,8 @@
 */
 
 // import { api } from '@mdn/browser-compat-data/forLegacyNode';
-import bcd from '@mdn/browser-compat-data' assert { type: 'json' };
-const { Readable, Duplex } = bcd.api
+import bcd from "@mdn/browser-compat-data" assert { type: "json" };
+const { Readable, Duplex } = bcd.api;
 const NeuQuant = require("./TypedNeuQuant.js");
 const LZWEncoder = require("./LZWEncoder.js");
 
@@ -86,7 +86,16 @@ GIFEncoder.prototype.createWriteStream = function (options) {
   if (options) {
     Object.keys(options).forEach(function (option) {
       var fn = `set${option[0].toUpperCase()}${option.substring(1)}`;
-      if (["setDelay", "setFrameRate", "setDispose", "setRepeat", "setTransparent", "setQuality"].indexOf(fn) !== -1) {
+      if (
+        [
+          "setDelay",
+          "setFrameRate",
+          "setDispose",
+          "setRepeat",
+          "setTransparent",
+          "setQuality",
+        ].indexOf(fn) !== -1
+      ) {
         self[fn](self, options[option]);
       }
     });
@@ -102,7 +111,7 @@ GIFEncoder.prototype.createWriteStream = function (options) {
     self.addFrame(data);
     next();
   };
-  var {end} = ws;
+  var { end } = ws;
   ws.end = function () {
     // eslint-disable-next-line prefer-rest-params
     end.apply(ws, [].slice.call(arguments));
@@ -262,7 +271,11 @@ GIFEncoder.prototype.analyzePixels = function () {
   // map image pixels to new palette
   var k = 0;
   for (var j = 0; j < nPix; j++) {
-    var index = imgq.lookupRGB(this.pixels[k++] & 0xff, this.pixels[k++] & 0xff, this.pixels[k++] & 0xff);
+    var index = imgq.lookupRGB(
+      this.pixels[k++] & 0xff,
+      this.pixels[k++] & 0xff,
+      this.pixels[k++] & 0xff,
+    );
     this.usedEntry[index] = true;
     this.indexedPixels[j] = index;
   }
@@ -361,7 +374,7 @@ GIFEncoder.prototype.writeGraphicCtrlExt = function () {
     0 | // 1:3 reserved
       disp | // 4:6 disposal
       0 | // 7 user input - 0 = none
-      transp // 8 transparency flag
+      transp, // 8 transparency flag
   );
 
   this.writeShort(this.delay); // delay x 1/100 sec
@@ -390,7 +403,7 @@ GIFEncoder.prototype.writeImageDesc = function () {
         0 | // 2 interlace - 0=no
         0 | // 3 sorted - 0=no
         0 | // 4-5 reserved
-        this.palSize // 6-8 size of color table
+        this.palSize, // 6-8 size of color table
     );
   }
 };
@@ -408,7 +421,7 @@ GIFEncoder.prototype.writeLSD = function () {
     0x80 | // 1 : global color table flag = 1 (gct used)
       0x70 | // 2-4 : color resolution = 7
       0x00 | // 5 : gct sort flag = 0
-      this.palSize // 6-8 : gct size
+      this.palSize, // 6-8 : gct size
   );
 
   this.out.writeByte(0); // background color index
