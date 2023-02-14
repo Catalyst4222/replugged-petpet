@@ -2,11 +2,12 @@ import { components, common } from "replugged";
 const { MenuItem, MenuGroup } = components.ContextMenu;
 const { React } = common;
 
-import { Guild, User } from "discord-types/general";
+import { User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
 
-export function insertMenuItem(menuItems: typeof MenuGroup, e: { guildId: string; user: User }) {
+// eslint-disable-next-line no-undef
+export function insertMenuItem(menuItems: JSX.Element, e: { guildId: string; user: User }) {
   const PetpetItem = (
     <MenuGroup>
       <MenuItem

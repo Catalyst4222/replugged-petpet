@@ -26,7 +26,7 @@ function getGuildMaxFileSize(guild: Guild | undefined = getCurrentGuild()): numb
   return nitroLevels[guild?.premiumTier || 0].limits.fileSize;
 }
 
-function getMaxUploadSize(guild: Guild = getCurrentGuild()): number {
+function getMaxUploadSize(guild: Guild | undefined = getCurrentGuild()): number {
   const guildMax = getGuildMaxFileSize(guild);
   const userMax = getUserMaxFileSize(getCurrentUser());
 
