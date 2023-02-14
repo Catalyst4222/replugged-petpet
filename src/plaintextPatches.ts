@@ -6,7 +6,7 @@ export default [
     replacements: [
       {
         match:
-          /(function\((.)\){var.+channel[\s\S]+)return([\s\S]+onSelect:.,children:\[.+\w}\)\]}\))}/g,
+          /(function\((.)\){var.+channel[\s\S]+)return([\s\S]+onSelect:.,children:\[.+\w+}\)\]}\))}/g,
         replace:
           "$1return(()=>{var res = ($3); window.replugged.plugins.getExports('dev.catalyst.Petpet')?.insertMenuItem?.(res, e); return (res)})()}",
       },
