@@ -97,7 +97,7 @@ export interface UploadAttachmentStore {
       >
     >;
     handleAddFiles(e: MultiUploadData): undefined;
-    EMPTY: unknown[]
+    EMPTY: unknown[];
   };
   // eslint-disable-next-line @typescript-eslint/ban-types
   findUpload(channelId: string, draftType: number, callback: Function): DiscordFile;
