@@ -26,19 +26,19 @@ export interface DiscordFile {
   uploadedFilename: string;
   _abortController: AbortSignal;
   _aborted: false;
-  _events: any;
+  _events: unknown;
   _eventsCount: number;
-  _maxListeners: any;
+  _maxListeners: unknown;
 
   cancel(): undefined;
   delete(): undefined;
   getSize(): undefined;
-  handleComplete(e: any): undefined;
-  handleError(e: any): undefined;
-  reactNativeCompressAndExtractData(): any;
+  handleComplete(e: unknown): undefined;
+  handleError(e: unknown): undefined;
+  reactNativeCompressAndExtractData(): unknown;
   resetState(): undefined;
   retryOpts(): {
-    backoff: any;
+    backoff: unknown;
     retries: number;
     timeout: number;
   };
@@ -46,8 +46,8 @@ export interface DiscordFile {
   setResponseUrl(responseUrl: string): undefined;
   setStatus(status: string): undefined;
   setUploadedFilename(uploadedFilename: string): undefined;
-  upload(): any;
-  uploadFileToCloud(): any;
+  upload(): unknown;
+  uploadFileToCloud(): unknown;
 
   // eslint-disable-next-line @typescript-eslint/no-misused-new
   constructor(
@@ -74,15 +74,15 @@ export interface MultiUploadData {
 
 // getBySource("UPLOAD_ATTACHMENT_ADD_FILES")
 export interface FileUploadMod {
-  addFile(data: UploadData);
-  addFiles(data: MultiUploadData);
-  clearAll(channelId: string, draftType: number);
-  popFirstFile(channelId: string);
-  remove(channelId: string, id: any, draftType: number);
-  removeFiles(channelId: string, attachmentIds: any, draftType: number);
-  setFile(e);
-  setUploads(e);
-  update(e, t, n, o);
+  addFile(data: UploadData): void;
+  addFiles(data: MultiUploadData): void;
+  clearAll(channelId: string, draftType: number): void;
+  popFirstFile(channelId: string): void;
+  remove(channelId: string, id: unknown, draftType: number): void;
+  removeFiles(channelId: string, attachmentIds: unknown, draftType: number): void;
+  setFile(e: unknown): void;
+  setUploads(e: unknown): void;
+  update(e: unknown, t: unknown, n: unknown, o: unknown): void;
 }
 
 // getBySource("UploadAttachmentStore")
@@ -97,8 +97,10 @@ export interface UploadAttachmentStore {
       >
     >;
     handleAddFiles(e: MultiUploadData): undefined;
+    EMPTY: unknown[]
   };
-  findUpload(channelId: string, draftType: number, callback: function): DiscordFile;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  findUpload(channelId: string, draftType: number, callback: Function): DiscordFile;
   getFirstUpload(channelId: string, draftType: number): number;
   getUpload(channelId: string, id: number, draftType: number): DiscordFile;
   getUploadCount(channelId: string, draftType: number): number;
