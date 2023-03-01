@@ -1,10 +1,12 @@
-import { components, common } from "replugged";
+import { components, common, Logger } from "replugged";
 const { MenuItem, MenuGroup } = components.ContextMenu;
 const { React } = common;
 
 import { User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
+
+const logger = Logger.plugin("replugged-petpet")
 
 // eslint-disable-next-line no-undef
 export function insertMenuItem(menuItems: JSX.Element, e: { guildId: string; user: User }) {
@@ -17,6 +19,29 @@ export function insertMenuItem(menuItems: JSX.Element, e: { guildId: string; use
       />
     </MenuGroup>
   );
+
+  // discord was nice and broke things
+  // It type checks menu items, so we have to override ours
+  // Our (bad) solution is to grab them off of the devmode button, but it might not exist
+
+  if (menuItems.props.children  // should be discordOptions + plugins[] + devmode
+    ?.at?.(-1)  // devmode group
+    ?.props?.children  // devmode item (single, so no list)
+    // eslint-disable-next-line eqeqeq
+    ?.key != "devmode-copy-id") {
+    logger.warn("The DevMode button was not found, so the item could not be injected. Please enable DevMode or notify the author of this plugin about the issue");
+    return null;
+  }
+
+  const devmodeGroup: JSX.Element = menuItems.props.children.at(-1)
+  const devmodeItem: JSX.Element = devmodeGroup.props.children
+
+  const groupType = devmodeGroup.type
+  const itemType = devmodeItem.type
+
+  PetpetItem.type = groupType
+  PetpetItem.props.children.type = itemType
+  // another possible way to inject menu items would be to check around the error from if the types aren't correct
 
   menuItems.props.children.splice(-1, 0, PetpetItem);
 
