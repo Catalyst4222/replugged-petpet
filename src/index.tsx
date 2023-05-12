@@ -1,51 +1,26 @@
-import { components, common, Logger } from "replugged";
-const { MenuItem, MenuGroup } = components.ContextMenu;
+import { Injector, common, components, types } from "replugged";
+const { MenuItem } = components.ContextMenu;
 const { React } = common;
+const { ContextMenuTypes } = types;
 
 import { User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
 
-const logger = Logger.plugin("replugged-petpet")
+const injector = new Injector()
 
-// eslint-disable-next-line no-undef
-export function insertMenuItem(menuItems: JSX.Element, e: { guildId: string; user: User }) {
-  const PetpetItem = (
-    <MenuGroup>
-      <MenuItem
-        id="petpet"
-        label="Generate Petpet"
-        action={() => makePetpet(e.user.getAvatarURL(e.guildId))}
-      />
-    </MenuGroup>
+export function start() {
+  injector.utils.addMenuItem(ContextMenuTypes.UserContext, insertMenuItem)
+}
+
+export function insertMenuItem(e: { guildId: string; user: User }) {
+  return (
+    <MenuItem
+      id="petpet"
+      label="Generate Petpet"
+      action={() => makePetpet(e.user.getAvatarURL(e.guildId))}
+    />
   );
-
-  // discord was nice and broke things
-  // It type checks menu items, so we have to override ours
-  // Our (bad) solution is to grab them off of the devmode button, but it might not exist
-
-  if (menuItems.props.children  // should be discordOptions + plugins[] + devmode
-    ?.at?.(-1)  // devmode group
-    ?.props?.children  // devmode item (single, so no list)
-    // eslint-disable-next-line eqeqeq
-    ?.key != "devmode-copy-id") {
-    logger.warn("The DevMode button was not found, so the item could not be injected. Please enable DevMode or notify the author of this plugin about the issue");
-    return null;
-  }
-
-  const devmodeGroup: JSX.Element = menuItems.props.children.at(-1)
-  const devmodeItem: JSX.Element = devmodeGroup.props.children
-
-  const groupType = devmodeGroup.type
-  const itemType = devmodeItem.type
-
-  PetpetItem.type = groupType
-  PetpetItem.props.children.type = itemType
-  // another possible way to inject menu items would be to check around the error from if the types aren't correct
-
-  menuItems.props.children.splice(-1, 0, PetpetItem);
-
-  return menuItems;
 }
 
 export async function makePetpet(avatarUrl: string) {
@@ -66,7 +41,7 @@ const defaults = {
 };
 
 // Based on https://github.com/aDu/pet-pet-gif, licensed under ISC
-export async function petpet(avatar: HTMLImageElement, options) {
+export async function petpet(avatar: HTMLImageElement, options: Record<string, number & unknown>) {
   if (frames.length === 0) {
     frames = await loadFrames();
   }
@@ -82,7 +57,8 @@ export async function petpet(avatar: HTMLImageElement, options) {
   encoder.setTransparent(0);
 
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = options.resolution;
+  canvas.width = options.resolution;
+  canvas.height = options.resolution
   const ctx = canvas.getContext("2d", { alpha: true, willReadFrequently: true })!;
 
   for (let i = 0; i < FRAMES; i++) {

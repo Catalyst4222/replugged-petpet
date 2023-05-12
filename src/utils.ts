@@ -10,7 +10,7 @@ import type { FileUploadMod, NitroLevel } from "./types";
 
 /* Discord nitro levels */
 
-const nitroLevelMod = webpack.getBySource("screenShareQualityFramerate")!;
+const nitroLevelMod = webpack.getBySource("screenShareQualityFramerate:")!;
 export const nitroLevels = Object.values(nitroLevelMod)
   .filter((value) => Object.keys(value as object).length === 4)
   .filter((value) => Object.values(value as object).every((item) => item?.limits))[0] as Record<
@@ -35,12 +35,12 @@ function getMaxUploadSize(guild: Guild | undefined = getCurrentGuild()): number 
 
 /* Uploading files */
 
-const { addFile } = webpack.getBySource("UPLOAD_ATTACHMENT_ADD_FILES") as unknown as FileUploadMod;
+const { addFile } = webpack.getBySource("addFiles:function") as unknown as FileUploadMod;
 
 export function prompToUpload(file: File): void {
   addFile({
     file: { file, platform: 1 },
-    channelId: getChannelId(),
+    channelId: getChannelId()!,
     showLargeMessageDialog: file.size > getMaxUploadSize(), // todo check this
     draftType: 0, // todo figure these out, but it seems to consistently be 0
   });
