@@ -3,17 +3,20 @@ const { MenuItem } = components.ContextMenu;
 const { React } = common;
 const { ContextMenuTypes } = types;
 
+import { GifEncoder } from "../gifencoder";
+
 import { User } from "discord-types/general";
 
 import { prompToUpload } from "./utils";
 
-const injector = new Injector()
+const injector = new Injector();
 
 export function start() {
-  injector.utils.addMenuItem(ContextMenuTypes.UserContext, insertMenuItem)
+  injector.utils.addMenuItem(ContextMenuTypes.UserContext, insertUser);
+  injector.utils.addMenuItem(ContextMenuTypes.Message, insertMessage);
 }
 
-export function insertMenuItem(e: { guildId: string; user: User }) {
+export function insertUser(e: { guildId: string; user: User }) {
   return (
     <MenuItem
       id="petpet"
@@ -23,16 +26,28 @@ export function insertMenuItem(e: { guildId: string; user: User }) {
   );
 }
 
-export async function makePetpet(avatarUrl: string) {
-  const avatar = await loadImage(avatarUrl);
-  const res = await petpet(avatar, {});
+// eslint-disable-next-line no-undef
+export function insertMessage(data: {itemHref?: string, itemSrc?: string}): JSX.Element | undefined {
+  // eslint-disable-next-line no-undefined
+  if (!data.itemHref && !data.itemSrc) return undefined;
+  
+  return (
+    <MenuItem
+      id="petpet"
+      label="Generate Petpet"
+      action={() => makePetpet(data.itemHref || data.itemSrc as string)}
+    />
+  );
+}
+
+export async function makePetpet(url: string) {
+  const img = await loadImage(url);
+  const res = await petpet(img, {});
   const file = new File([res], "petpet.gif", { type: "image/gif" });
   prompToUpload(file);
 }
 
 // petpet magic
-
-import { GifEncoder } from "../gifencoder";
 
 let frames: Array<HTMLImageElement> = [];
 const defaults = {
@@ -58,7 +73,7 @@ export async function petpet(avatar: HTMLImageElement, options: Record<string, n
 
   const canvas = document.createElement("canvas");
   canvas.width = options.resolution;
-  canvas.height = options.resolution
+  canvas.height = options.resolution;
   const ctx = canvas.getContext("2d", { alpha: true, willReadFrequently: true })!;
 
   for (let i = 0; i < FRAMES; i++) {
