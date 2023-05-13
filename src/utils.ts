@@ -35,7 +35,7 @@ function getMaxUploadSize(guild: Guild | undefined = getCurrentGuild()): number 
 
 /* Uploading files */
 
-const { addFile } = webpack.getBySource("addFiles:function") as unknown as FileUploadMod;
+const { addFile } = webpack.getBySource<FileUploadMod>("addFiles:function")!;
 
 export function prompToUpload(file: File): void {
   addFile({

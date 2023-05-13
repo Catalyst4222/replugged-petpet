@@ -1,3 +1,5 @@
+import { ObjectExports } from "replugged/dist/types";
+
 export interface FileItem {
   file: File;
   platform: number;
@@ -72,8 +74,8 @@ export interface MultiUploadData {
   draftType: number;
 }
 
-// getBySource("UPLOAD_ATTACHMENT_ADD_FILES")
-export interface FileUploadMod {
+// getBySource("addFiles:function")
+export interface FileUploadMod extends ObjectExports {
   addFile(data: UploadData): void;
   addFiles(data: MultiUploadData): void;
   clearAll(channelId: string, draftType: number): void;
@@ -86,7 +88,7 @@ export interface FileUploadMod {
 }
 
 // getBySource("UploadAttachmentStore")
-export interface UploadAttachmentStore {
+export interface UploadAttachmentStore extends ObjectExports {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __getLocalVars(): {
     _uploads: Map<
