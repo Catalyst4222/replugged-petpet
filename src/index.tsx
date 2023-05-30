@@ -1,19 +1,24 @@
-import { Injector, common, components, types } from "replugged";
+import { Injector, common, components, settings, types, util } from "replugged";
+const { SwitchItem } = components;
 const { MenuItem } = components.ContextMenu;
 const { React } = common;
 const { ContextMenuTypes } = types;
 
-import { GifEncoder } from "../gifencoder";
-
 import { User } from "discord-types/general";
-
+import { GifEncoder } from "../gifencoder";
 import { prompToUpload } from "./utils";
+
+/* Set up context menus */
 
 const injector = new Injector();
 
 export function start() {
   injector.utils.addMenuItem(ContextMenuTypes.UserContext, insertUser);
   injector.utils.addMenuItem(ContextMenuTypes.Message, insertMessage);
+}
+
+export function stop() {
+  injector.uninjectAll();
 }
 
 export function insertUser(e: { guildId: string; user: User }) {
@@ -26,16 +31,19 @@ export function insertUser(e: { guildId: string; user: User }) {
   );
 }
 
-// eslint-disable-next-line no-undef
-export function insertMessage(data: {itemHref?: string, itemSrc?: string}): JSX.Element | undefined {
+export function insertMessage(data: {
+  itemHref?: string;
+  itemSrc?: string;
+  // eslint-disable-next-line no-undef
+}): JSX.Element | undefined {
   // eslint-disable-next-line no-undefined
   if (!data.itemHref && !data.itemSrc) return undefined;
-  
+
   return (
     <MenuItem
       id="petpet"
       label="Generate Petpet"
-      action={() => makePetpet(data.itemHref || data.itemSrc as string)}
+      action={() => makePetpet(data.itemHref || (data.itemSrc as string))}
     />
   );
 }
@@ -47,7 +55,33 @@ export async function makePetpet(url: string) {
   prompToUpload(file);
 }
 
-// petpet magic
+/* Manage settings */
+
+const defaultSettings = {
+  square: false,
+  shrink: false,
+};
+
+// @ts-expect-error
+const cfg = await settings.init<{ square: boolean; shrink: boolean }, keyof typeof defaultSettings>(
+  "dev.catalyst.Petpet",
+  defaultSettings,
+);
+
+export function Settings(): unknown {
+  return (
+    <div>
+      <SwitchItem {...util.useSetting(cfg, "square")}>Force the image into a square</SwitchItem>
+      <SwitchItem
+        note="Only applies if the image isn't squared"
+        {...util.useSetting(cfg, "shrink")}>
+        Shrink the entire image into the gif
+      </SwitchItem>
+    </div>
+  );
+}
+
+/* Petpet magic */
 
 let frames: Array<HTMLImageElement> = [];
 const defaults = {
@@ -56,9 +90,29 @@ const defaults = {
 };
 
 // Based on https://github.com/aDu/pet-pet-gif, licensed under ISC
-export async function petpet(avatar: HTMLImageElement, options: Record<string, number & unknown>) {
+export async function petpet(image: HTMLImageElement, options: Record<string, number & unknown>) {
   if (frames.length === 0) {
     frames = await loadFrames();
+  }
+
+  let widthScale = 1;
+  let heightScale = 1;
+
+  if (!cfg.get("square", false)) {
+    // // Don't you love scaling?
+
+    let scale = image.width / image.height;
+
+    if (cfg.get("shrink")) {
+      widthScale *= scale < 1 ? scale : 1 / scale;
+      heightScale *= scale < 1 ? scale : 1 / scale;
+    }
+
+    if (image.width > image.height) {
+      widthScale *= scale;
+    } else {
+      heightScale *= 1 / scale;
+    }
   }
 
   const FRAMES = frames.length;
@@ -87,11 +141,11 @@ export async function petpet(avatar: HTMLImageElement, options: Record<string, n
     const offsetY = 1 - height - 0.08;
 
     ctx.drawImage(
-      avatar,
+      image,
       options.resolution * offsetX,
       options.resolution * offsetY,
-      options.resolution * width,
-      options.resolution * height,
+      options.resolution * width * widthScale,
+      options.resolution * height * heightScale,
     );
     ctx.drawImage(frames[i], 0, 0, options.resolution, options.resolution);
 
