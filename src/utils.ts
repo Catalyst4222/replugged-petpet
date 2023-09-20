@@ -12,15 +12,14 @@ import type { FileUploadMod, NitroLevel } from "./types";
 
 const nitroLevelMod = webpack.getBySource("screenShareQualityFramerate:")!;
 export const nitroLevels = Object.values(nitroLevelMod)
+  .filter(value => value)
   .filter((value) => Object.keys(value as object).length === 4)
   .filter((value) => Object.values(value as object).every((item) => item?.limits))[0] as Record<
   number,
   NitroLevel
 >;
 
-const getUserMaxFileSize = webpack.getByProps("getUserMaxFileSize")!.getUserMaxFileSize as (
-  user: User,
-) => number;
+const getUserMaxFileSize = webpack.getByProps<{getUserMaxFileSize(user: User): number}>("getUserMaxFileSize")!.getUserMaxFileSize
 
 function getGuildMaxFileSize(guild: Guild | undefined = getCurrentGuild()): number {
   return nitroLevels[guild?.premiumTier || 0].limits.fileSize;
